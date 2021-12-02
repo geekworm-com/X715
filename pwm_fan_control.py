@@ -106,40 +106,63 @@ def _temp_to_duty_cycle(temp: float) -> int:
 
      return duty_cycle
 
-async def fan_control(gpiochip: int, gpio: int):
-     """Task for controlling the fan based on temp. Runs until cancelled."""
+async def fan_control_chiphandle(h: int, gpio: int):
+     """Task for controlling the fan based on temp. Runs until cancelled.
+     
+     Use when you have an already open gpiochip handle.
+
+     Example:
+          with _gpiochip(gpiochip) as h:
+               fan_task: Final[asyncio.Task] = asyncio.create_task(fan_control_chiphandle(h, 13), name="fan control")
+               lights_task: Final[asyncio.Task] = asyncio.create_task(light_control_chiphandle(h), name="light control")
+
+               await asyncio.gather(fan_task, lights_task)
+     """
+
      FREQUENCY: Final[int] = 10000 #hz
+     
+     with _gpio_claim_output(h, gpio):
+          try:
+               while True:
+                    temp = await _get_temp()
 
-     with _gpiochip(gpiochip) as h:
-          with _gpio_claim_output(h, gpio):
-               try:
-                    while True:
-                         temp = await _get_temp()
+                    assert temp is not None
 
-                         assert temp is not None
+                    duty_cycle = _temp_to_duty_cycle(temp)
 
-                         duty_cycle = _temp_to_duty_cycle(temp)
+                    assert 100 >= duty_cycle >= 0
 
-                         assert 100 >= duty_cycle >= 0
-
-                         queue_length = lgpio.tx_pwm(h, gpio, FREQUENCY, duty_cycle)
-                         # Nullable logic, compare against the positive case and invert if needed
-                         if not queue_length >= 0:
-                              raise lgpio.error(f"GPIO unable to set PWM: {queue_length} {duty_cycle}")
-
-                         print(f"Temp: {temp} --> {duty_cycle}%")
-
-                         await asyncio.sleep(3)
-
-               except asyncio.CancelledError:
-                    print("Cancelling...")
-                    duty_cycle = 0
                     queue_length = lgpio.tx_pwm(h, gpio, FREQUENCY, duty_cycle)
                     # Nullable logic, compare against the positive case and invert if needed
                     if not queue_length >= 0:
                          raise lgpio.error(f"GPIO unable to set PWM: {queue_length} {duty_cycle}")
 
-                    raise
+                    print(f"Temp: {temp} --> {duty_cycle}%")
+
+                    await asyncio.sleep(3)
+
+          except asyncio.CancelledError:
+               print("Cancelling...")
+               duty_cycle = 0
+               queue_length = lgpio.tx_pwm(h, gpio, FREQUENCY, duty_cycle)
+               # Nullable logic, compare against the positive case and invert if needed
+               if not queue_length >= 0:
+                    raise lgpio.error(f"GPIO unable to set PWM: {queue_length} {duty_cycle}")
+
+               raise
+
+async def fan_control(gpiochip: int, gpio: int):
+     """Task for controlling the fan based on temp. Runs until cancelled.
+     
+     Opens and closes the chiphandle for you.
+     
+     Example:
+          task: Final[asyncio.Task] = asyncio.create_task(fan_control(args.gpiochip, args.gpio), name="fan control")
+          await task #forever
+     """
+
+     with _gpiochip(gpiochip) as h:
+          await fan_control_chiphandle(h, gpio)
 
 async def main():
      """Main entry point for PWM fan control"""
