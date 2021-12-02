@@ -17,8 +17,9 @@ import argparse
 import contextlib
 import pathlib
 import signal
-from typing import Any, Final, Optional
+from typing import Any, Final
 
+# !!! This module writes to CWD at import time !!!
 import lgpio
 
 
@@ -119,7 +120,7 @@ async def fan_control_chiphandle(h: int, gpio: int):
                await asyncio.gather(fan_task, lights_task)
      """
 
-     FREQUENCY: Final[int] = 10000 #hz
+     FREQUENCY: Final[int] = 10 #hz
      
      with _gpio_claim_output(h, gpio):
           try:
@@ -186,7 +187,7 @@ async def main():
                 f"Geekwork X715 uses mask {DEFAULT_GPIO}, which is selected by default."))
 
      args: Final[argparse.Namespace] = parser.parse_args()
-     
+
      task: Final[asyncio.Task] = asyncio.create_task(fan_control(args.gpiochip, args.gpio), name="fan control")
 
      loop = asyncio.get_running_loop()

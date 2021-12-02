@@ -1,0 +1,15 @@
+[Unit]
+Description=Geekworm X715 Fan Control
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=10
+User=gpiousr
+WorkingDirectory=/tmp
+ExecStart=/usr/bin/env python3 -OO /opt/job/fan_control/pwm_fan_control.py
+
+[Install]
+WantedBy=multi-user.target
