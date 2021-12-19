@@ -23,6 +23,7 @@ from typing import Any, Final
 
 # !!! This module writes to CWD at import time !!!
 import lgpio
+import pystemd.daemon
 
 
 @contextlib.contextmanager
@@ -146,7 +147,7 @@ async def fan_control_chiphandle(h: int, gpio: int):
                     raise lgpio.error(
                         f"GPIO unable to set PWM: {queue_length} {duty_cycle}")
 
-                logging.info("%d,%d", temp, duty_cycle)
+                logging.debug("%d,%d", temp, duty_cycle)
 
                 await asyncio.sleep(3)
 
@@ -180,6 +181,12 @@ def configure_parser(
         parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """Configure an argument parser."""
 
+    SYSTEMD_HELP: Final[str] = ("Launch as a systemd notify service.")
+    parser.add_argument("--systemd",
+                        action="store_true",
+                        default=False,
+                        help=SYSTEMD_HELP)
+
     GPIOCHIP_DEFAULT: Final[int] = 0
     GPIOCHIP_HELP: Final[str] = (
         "GPIO chip to use."
@@ -210,11 +217,13 @@ async def main():
     parser = configure_parser(parser)
     args: Final[argparse.Namespace] = parser.parse_args()
 
+    if args.systemd:
+        pystemd.daemon.notify(False, ready=1)
+
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-    task: Final[asyncio.Task] = asyncio.create_task(fan_control(
-        args.gpiochip, args.gpio),
-                                                    name="fan control")
+    task = asyncio.create_task(fan_control(args.gpiochip, args.gpio),
+                               name="fan control")
 
     loop = asyncio.get_running_loop()
     sigs = [signal.SIGINT, signal.SIGTERM]
@@ -231,6 +240,9 @@ async def main():
         await task
     except asyncio.CancelledError:
         logging.warning("Cancelled")
+
+    if args.systemd:
+        pystemd.daemon.notify(False, stopping=1)
 
 
 if __name__ == "__main__":

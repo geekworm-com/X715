@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-apt install python3-venv python3-lgpio
+apt install python3-venv python3-lgpio libsystemd-dev
 
 getent group gpio || groupadd gpio
 

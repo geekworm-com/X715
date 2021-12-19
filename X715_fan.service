@@ -4,13 +4,13 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=simple
+Type=notify
 Restart=always
 RestartSec=10
 User=nobody
 Group=gpio
 WorkingDirectory=/tmp
-ExecStart=/usr/lib/geekworm/X715_fan/.venv/bin/python3 -OO /usr/lib/geekworm/X715_fan/X715_fan.py
+ExecStart=/usr/lib/geekworm/X715_fan/.venv/bin/python3 -OO /usr/lib/geekworm/X715_fan/X715_fan.py --systemd
 
 [Install]
 WantedBy=multi-user.target

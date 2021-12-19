@@ -5,10 +5,11 @@ clean:
 	rm -rf .venv
 
 .PHONY: deps
-deps: ./install-deps.sh
+deps: 
+	./install-deps.sh
 
 .PHONY: venv
-venv: 
+venv:
 	( \
 		python3 -m venv --system-site-packages .venv; \
 		. ./.venv/bin/activate; \
