@@ -7,9 +7,10 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=10
-User=gpiousr
+User=nobody
+Group=gpio
 WorkingDirectory=/tmp
-ExecStart=/usr/bin/env python3 -OO /opt/job/fan_control/pwm_fan_control.py
+ExecStart=/usr/lib/geekworm/X715_fan/.venv/bin/python3 -OO /usr/lib/geekworm/X715_fan/X715_fan.py
 
 [Install]
 WantedBy=multi-user.target
