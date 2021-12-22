@@ -19,7 +19,7 @@ import logging
 import pathlib
 import signal
 import sys
-from typing import Any, Final
+from typing import Any, Callable, Final, Optional
 
 # !!! This module writes to CWD at import time !!!
 import lgpio
@@ -73,6 +73,57 @@ def _gpio_claim_output(handle: Any, gpio: int) -> int:
         # Nullable logic, compare against the positive case and invert if needed
         if not error_code >= 0:
             raise lgpio.error(f"GPIO output not freed: {gpio} {error_code}")
+
+
+@contextlib.contextmanager
+def _gpio_claim_input(handle: Any, gpio: int, lFlags: int = 0) -> int:
+    """Context manager for lgpio gpio input
+    """
+    error_code = lgpio.gpio_claim_input(handle, gpio, lFlags)
+    # Nullable logic, compare against the positive case and invert if needed
+    if not error_code >= 0:
+        raise lgpio.error(f"GPIO input not claimed: {gpio} {error_code}")
+
+    try:
+        yield gpio
+    finally:
+        error_code = lgpio.gpio_free(handle, gpio)
+        # Nullable logic, compare against the positive case and invert if needed
+        if not error_code >= 0:
+            raise lgpio.error(f"GPIO input not freed: {gpio} {error_code}")
+
+@contextlib.contextmanager
+def _gpio_claim_alert(handle: Any, gpio: int, eFlags: int, lFlags: int = 0, notify_handle: Optional[int] = None) -> int:
+    """Context manager for lgpio gpio alert
+    """
+    error_code = lgpio.gpio_claim_alert(handle, gpio, eFlags, lFlags, notify_handle)
+    # Nullable logic, compare against the positive case and invert if needed
+    if not error_code >= 0:
+        raise lgpio.error(f"GPIO alert not claimed: {gpio} {error_code}")
+
+    try:
+        yield gpio
+    finally:
+        error_code = lgpio.gpio_free(handle, gpio)
+        # Nullable logic, compare against the positive case and invert if needed
+        if not error_code >= 0:
+            raise lgpio.error(f"GPIO alert not freed: {gpio} {error_code}")
+
+@contextlib.contextmanager
+def _gpio_callback(handle: Any,
+                   gpio: int,
+                   edge=lgpio.RISING_EDGE,
+                   func: Callable = None) -> int:
+    """Context manager for lgpio callback.
+    
+    """
+    cbk = lgpio.callback(handle, gpio, edge, func)
+    assert cbk is not None
+
+    try:
+        yield cbk
+    finally:
+        cbk.cancel()
 
 
 async def _get_temp() -> float:

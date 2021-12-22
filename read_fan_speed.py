@@ -1,38 +1,44 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import RPi.GPIO as GPIO
+#!/usr/bin/env python3
+import asyncio
 import time
 
-TACH = 16
-PULSE = 2
-WAIT_TIME = 1
+import lgpio
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(TACH, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+import X715_fan
 
-t = time.time()
-rpm = 0
 
-def fell(n):
-    global t
-    global rpm
+class Tachometer:
 
-    dt = time.time() - t
-    if dt < 0.005: return
-
-    freq = 1 / dt
-    rpm = (freq / PULSE) * 60
     t = time.time()
+    rpm = 0
 
-GPIO.add_event_detect(TACH, GPIO.FALLING, fell)
+    def fell(self, a, b, c, d):
+        PULSE = 2
 
-try:
-    while True:
-        print "%.f RPM" % rpm
-        rpm = 0
-        time.sleep(1)
+        dt = time.time() - self.t
+        if dt < 0.005: return
 
-except KeyboardInterrupt:
-    GPIO.cleanup()
+        freq = 1 / dt
+        self.rpm = (freq / PULSE) * 60
+        self.t = time.time()
 
+
+async def main():
+    TACH = 16
+    WAIT_TIME = 1
+
+    tach = Tachometer()
+    with X715_fan._gpiochip(0) as handle:
+        with X715_fan._gpio_claim_alert(handle, TACH, lgpio.FALLING_EDGE,
+                                        lgpio.SET_BIAS_PULL_UP) as h2:
+            with X715_fan._gpio_callback(handle, TACH, lgpio.FALLING_EDGE,
+                                         tach.fell) as cbk:
+
+                for i in range(0, 30):
+                    print(f"{tach.rpm:.0f} RPM")
+                    tach.rpm = 0
+                    await asyncio.sleep(WAIT_TIME)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
