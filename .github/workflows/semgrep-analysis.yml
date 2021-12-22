@@ -33,6 +33,7 @@ jobs:
         with:
           generateSarif: "1"
           config: >-
+            p/ci
             p/secrets
 
       # Upload SARIF file generated in previous step
