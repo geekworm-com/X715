@@ -1,9 +1,23 @@
-# Fan control for Geekworm X715 on Ubuntu 21.04 and newer
+# Fan control for Geekworm X715 on Ubuntu 22.04 LTS 
 
-Tested on Ubuntu 21.10 arm64
+Tested on RPI4, which is arm64/aarch64
+
+Installation:
+```bash
+sudo apt install build-essential
+sudo make install
+```
+
+On first installation, this modifies the udev rules that gpiod honors to allow the dialout group to talk to the gpiochip. You may need to reboot for the kernel to reload these rules.
+
+Reading the fan speed:
 
 ```bash
-sudo make install
+make venv
+. ./.venv/bin/activate
+# Can't open the gpiochip?
+# usermod -aG dialout $USER
+python3 read_fan_speed.py
 ```
 
 # See also

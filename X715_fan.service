@@ -8,7 +8,7 @@ Type=notify
 Restart=always
 RestartSec=10
 User=nobody
-Group=gpio
+Group=dialout
 WorkingDirectory=/tmp
 ExecStart=/usr/lib/geekworm/X715_fan/.venv/bin/python3 -OO /usr/lib/geekworm/X715_fan/X715_fan.py --systemd
 

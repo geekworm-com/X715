@@ -13,7 +13,7 @@ venv:
 	( \
 		python3 -m venv --system-site-packages .venv; \
 		. ./.venv/bin/activate; \
-		python3 -m pip install --upgrade pip; \
+		python3 -m pip install --upgrade pip setuptools; \
 		python3 -m pip install --upgrade -r ./requirements.txt; \
 		python3 -m pip install --upgrade -r ./requirements-dev.txt; \
 	)
@@ -22,16 +22,16 @@ venv:
 install: 
 	./install-deps.sh
 	mkdir -p /usr/lib/geekworm/X715_fan
-	install --group gpio --owner root --mode 0644 ./requirements.txt /usr/lib/geekworm/X715_fan
+	install --group dialout --owner root --mode 0644 ./requirements.txt /usr/lib/geekworm/X715_fan
 	( \
 		cd /usr/lib/geekworm/X715_fan; \
 		python3 -m venv --system-site-packages .venv; \
 		. ./.venv/bin/activate; \
-		python3 -m pip install --upgrade pip; \
+		python3 -m pip install --upgrade pip setuptools; \
 		python3 -m pip install --upgrade -r ./requirements.txt; \
 		cd -; \
 	)
-	install --group gpio --owner root --mode 0744 ./X715_fan.py /usr/lib/geekworm/X715_fan
+	install --group dialout --owner root --mode 0744 ./X715_fan.py /usr/lib/geekworm/X715_fan
 	install --group root --owner root --mode 0755 ./X715_fan.service /etc/systemd/system
 	systemctl daemon-reload
 	systemctl enable X715_fan

@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-# Min version 3.8
-"""Raspberry Pi 4, Geekwork X715, Ubuntu 21.04+ fan control
-
-Requires python 3.8 or newer, which is included with Ubuntu 20.04 LTS and newer.
-Requires lpgio:
-    `apt install python3-lgpio`
+# Min version 3.10
+"""Raspberry Pi 4, Geekwork X715, Ubuntu 22.04+ fan control
 
 Examples:
     python3 -OO pwm_fan_control.py
