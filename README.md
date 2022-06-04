@@ -1,15 +1,27 @@
-# X715
+# Fan control for Geekworm X715 on Ubuntu 22.04 LTS 
 
-The PWN fan is not rotating when X715 is connected to PI 4, we need to to install the pwm fan control script
+Tested on RPI4, which is arm64/aarch64
 
-The pytone file need pigpiod library, so we need to install it firstly.
-
+Installation:
+```bash
+sudo apt install build-essential
+sudo make install
 ```
-sudo apt-get install -y pigpio python-pigpio python3-pigpio
-sudo systemctl enable pigpiod
-git clone https://github.com/geekworm-com/x715
-sudo reboot
 
-cd ~
-python /home/pi/x715/pwm_fan_control.py&
+On first installation, this modifies the udev rules that gpiod honors to allow the dialout group to talk to the gpiochip. You may need to reboot for the kernel to reload these rules.
+
+Reading the fan speed:
+
+```bash
+make venv
+. ./.venv/bin/activate
+# Can't open the gpiochip?
+# usermod -aG dialout $USER
+python3 read_fan_speed.py
 ```
+
+# See also
+
+- https://blogjawn.stufftoread.com/raspberry-pi-gpio-tutorial.html
+- https://waldorf.waveform.org.uk/2021/the-pins-they-are-a-changin.html
+- https://www.udoo.org/forum/threads/gpio-permissions-for-libgpiod-sudo-or-not.32453/

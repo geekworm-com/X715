@@ -1,0 +1,16 @@
+[Unit]
+Description=Geekworm X715 Fan Control
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+Restart=always
+RestartSec=10
+User=nobody
+Group=dialout
+WorkingDirectory=/tmp
+ExecStart=/usr/lib/geekworm/X715_fan/.venv/bin/python3 -OO /usr/lib/geekworm/X715_fan/X715_fan.py --systemd
+
+[Install]
+WantedBy=multi-user.target

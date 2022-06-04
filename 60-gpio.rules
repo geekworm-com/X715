@@ -1,0 +1,2 @@
+# udev rules for gpio port access through libgpiod
+SUBSYSTEM=="gpio", KERNEL=="gpiochip0", GROUP="dialout", MODE="0660"
